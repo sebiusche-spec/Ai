@@ -10,8 +10,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Java
@@ -20,9 +21,8 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-            - name: Setup Android SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        continue-on-error: true
 
       - name: Install SDK packages
         run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
@@ -33,20 +33,22 @@ jobs:
           gradle-version: '8.9'
 
       - name: Extract ZIP
+        shell: bash
         run: |
           mkdir -p project
           ZIP_FILE=$(find . -maxdepth 1 -type f -name "*.zip" -print -quit)
           if [ -z "$ZIP_FILE" ]; then
-            echo "No ZIP file found in repository root"
+            echo "ERROR: No ZIP found in repository root"
             exit 1
           fi
           unzip -q "$ZIP_FILE" -d project
 
       - name: Locate project
+        shell: bash
         run: |
           SETTINGS_FILE=$(find "$GITHUB_WORKSPACE/project" -name settings.gradle.kts -print -quit)
           if [ -z "$SETTINGS_FILE" ]; then
-            echo "settings.gradle.kts not found"
+            echo "ERROR: settings.gradle.kts not found"
             exit 1
           fi
           echo "PROJECT_DIR=$(dirname "$SETTINGS_FILE")" >> "$GITHUB_ENV"
