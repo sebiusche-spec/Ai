@@ -10,9 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Java
@@ -24,7 +23,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK packages
+      - name: Install SDK packages
         run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Setup Gradle
@@ -32,31 +31,29 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract project ZIP
+      - name: Extract ZIP
         run: |
           mkdir -p project
           ZIP_FILE=$(find . -maxdepth 1 -type f -name "*.zip" -print -quit)
           if [ -z "$ZIP_FILE" ]; then
-            echo "ERROR: Repository root mein ZIP file nahi mili."
+            echo "No ZIP file found in repository root"
             exit 1
           fi
           unzip -q "$ZIP_FILE" -d project
-          find project -name settings.gradle.kts
 
-      - name: Locate Android project
+      - name: Locate project
         run: |
           SETTINGS_FILE=$(find "$GITHUB_WORKSPACE/project" -name settings.gradle.kts -print -quit)
           if [ -z "$SETTINGS_FILE" ]; then
-            echo "ERROR: settings.gradle.kts nahi mili. ZIP structure check karo."
+            echo "settings.gradle.kts not found"
             exit 1
           fi
           echo "PROJECT_DIR=$(dirname "$SETTINGS_FILE")" >> "$GITHUB_ENV"
 
-      - name: Generate Gradle Wrapper
-        run: gradle -p "$PROJECT_DIR" wrapper --gradle-version 8.9
-
-      - name: Build Debug APK
-        run: gradle -p "$PROJECT_DIR" assembleDebug
+      - name: Build APK
+        run: |
+          gradle -p "$PROJECT_DIR" wrapper --gradle-version 8.9
+          gradle -p "$PROJECT_DIR" assembleDebug
 
       - name: Upload APK
         if: success()
@@ -65,10 +62,3 @@ jobs:
           name: SHIVAM-OS-APK
           path: project/**/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-
-### 2. Save करो
-- **Commit changes** दबाओ।
-- फिर [GitHub Actions](https://github.com/sebiusche-spec/Ai/actions) खोलो।
-- **Build SHIVAM OS APK → Run workflow** चलाओ।
-
-अगर फिर error आए, तो इस बार केवल **लाल ❌ वाले step का नाम और error की आखिरी 10 लाइनें** भेजना। APK बनने तक हम errors एक-एक करके ठीक करेंगे।
