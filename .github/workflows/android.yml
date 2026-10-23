@@ -36,12 +36,7 @@ jobs:
           if [ ! -x "$SDKMANAGER" ]; then
             SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager -print -quit)
           fi
-          if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
-            echo "ERROR: sdkmanager executable not found"
-            find "$ANDROID_HOME/cmdline-tools" -maxdepth 3 -type f -name sdkmanager
-            exit 1
-          fi
-          yes | "$SDKMANAGER" --licenses
+          "$SDKMANAGER" --licenses </dev/null || true
           "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
